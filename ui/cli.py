@@ -46,11 +46,11 @@ class GameRunner:
                 break
             
             # Parse and execute move
-            direction = self._game_engine.parse_move_lrud(move)
+            direction, msg_direction = self._game_engine.parse_move_lrud(move)
             if direction:
                 success = self._game_engine.make_move(direction)
                 if not success:
-                    logs.getInfo(f"Invalid move in the {direction} direction.")
+                    logs.getInfo(f"Invalid move in the {msg_direction} direction.")
                     input(f"❌ {Messages.BAD_MOVE} Press Enter...")
             else:
                 logs.getWarning(f"Invalid input {move}")

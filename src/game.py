@@ -31,14 +31,14 @@ class GameEngine:
             return False
 
         # Check if move is valid
-        if not self._is_valid_move(direction):
+        valid = self._is_valid_move(direction)
+        if not valid:
             return False
-
+        
         # Perform the move
         moved = self._execute_move(direction)
-
         if moved:
-            self.move_count += 1
+            self._moves += 1
             self._add_new_tile(direction)
             self._update_score()
             self._check_game_state()
@@ -83,7 +83,7 @@ class GameEngine:
     
     def _is_valid_move(self, direction):
         """Check if any tiles can move/merge in given direction."""
-        self._board.can_move(direction)
+        return self._board.can_move(direction)
 
     def _execute_move(self, direction: Directions) -> bool:
         """Execute the move and return if anything actually moved."""
@@ -109,25 +109,27 @@ class GameEngine:
         """Update the current score based on board state."""
         # Score is typically sum of all tiles >= 3
         total = 0
-        for tile in self.board.get_all_tiles():
-            if tile and tile.value >= 3:
-                # Threes scoring: 3^(log2(value/3) + 1)
-                if tile.value == 3:
-                    total += 3
-                else:
-                    # For merged tiles: 6, 12, 24, etc.
-                    power = (tile.value // 3).bit_length() - 1
-                    total += 3 ** (power + 1)
+        for tile in self._board.get_all_tiles():
+            if tile:
+                value = tile.get_value()
+                if value >= 3:
+                    # Threes scoring: 3^(log2(value/3) + 1)
+                    if value == 3:
+                        total += 3
+                    else:
+                        # For merged tiles: 6, 12, 24, etc.
+                        power = (value // 3).bit_length() - 1
+                        total += 3 ** (power + 1)
         
         self.score = total
     
     def _check_game_state(self):
         """Check if the game is over or won."""
-        if self.board.is_full() and not self._has_valid_moves():
+        if self._board.is_full() and not self._has_valid_moves():
             self.state = GameState.GAME_OVER
         
         # Optional: Check for win condition (e.g., reaching 6144 tile)
-        max_tile = max((tile.value for tile in self.board.get_all_tiles() if tile), default=0)
+        max_tile = max((tile.get_value() for tile in self._board.get_all_tiles() if tile), default=0)
         if max_tile >= 6144:  # Adjust this threshold as needed
             self.state = GameState.WON
 
@@ -166,12 +168,12 @@ class GameEngine:
     def parse_move_lrud(self, move):
         """Convert user input to Direction enum."""
         move_map = {
-            'l': Directions.LEFT,
-            'r': Directions.RIGHT, 
-            'u': Directions.UP,
-            'd': Directions.DOWN
+            'l': (Directions.LEFT, 'Left'),
+            'r': (Directions.RIGHT, 'Right'), 
+            'u': (Directions.UP, 'Up'),
+            'd': (Directions.DOWN, 'Down')
         }
-        return move_map.get(move)
+        return move_map.get(move) or (None, None)
 
 def main():
     game = GameState()

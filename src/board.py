@@ -75,7 +75,6 @@ class Board:
         for row in range(len(self._board)):
             for col in range(len(self._board[row])):
                 tile = self.get_tile(row, col)
-                
                 # Skip empty cells
                 if not tile or tile.is_empty():
                     continue
